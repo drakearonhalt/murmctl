@@ -39,7 +39,10 @@ if args.command == 'list':
         print server.getRegisteredUsers('')
     elif args.object == 'tree':
         print server.getTree()
-
+elif args.command == 'dump':
+    if args.object =='logs':
+        length = server.getLogLen()
+        print server.getLog(0,length)
 
 
 
