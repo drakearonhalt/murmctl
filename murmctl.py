@@ -24,7 +24,7 @@ server = meta.getServer(1)
 parser = argparse.ArgumentParser()
 parser.add_argument('command', help='command to perform on murmur server')
 parser.add_argument('object', help='object the command should be performed on',
-        default='None')
+        default='None', nargs='?')
 args = parser.parse_args()
 
 
@@ -43,6 +43,11 @@ elif args.command == 'dump':
     if args.object =='logs':
         length = server.getLogLen()
         print server.getLog(0,length)
+elif args.command =='status':
+        if server.isRunning():
+            print 'Running'
+        else:
+            print 'Stopped'
 
 
 
