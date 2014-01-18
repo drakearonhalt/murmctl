@@ -23,6 +23,13 @@ Ice.loadSlice('-I/usr/share/Ice-3.5.1/slice /opt/murmur/Murmur.ice')
 import Murmur
 import argparse
 
+def getSession(server, name):
+    all_users = server.getUsers()
+    for u,d in all_users.items():
+        if d.name == args.object:
+            return d.session
+
+
 props = Ice.createProperties()
 props.setProperty('Ice.Default.EncodingVersion','1.0')
 
@@ -66,7 +73,5 @@ elif args.command == 'status':
     else:
         print 'Stopped'
 elif args.command == 'kick':
-    all_users = server.getUsers()
-    for u,d in all_users.items():
-        if d.name == args.object:
-            server.kickUser(d.session, 'Test kick message.')
+    sessionid = getSession(server, args.object)
+    server.kickUser(sessionid, 'Test kick message.')
