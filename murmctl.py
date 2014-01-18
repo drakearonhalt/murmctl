@@ -75,3 +75,6 @@ elif args.command == 'status':
 elif args.command == 'kick':
     sessionid = getSession(server, args.object)
     server.kickUser(sessionid, 'Test kick message.')
+elif args.command == 'message':
+    sessionid = getSession(server, args.object)
+    server.sendMessage(sessionid, args.remain[0])
