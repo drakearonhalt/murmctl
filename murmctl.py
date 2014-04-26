@@ -23,12 +23,45 @@ Ice.loadSlice('-I/usr/share/Ice-3.5.1/slice /opt/murmur/Murmur.ice')
 import Murmur
 import argparse
 
+def _print_name_from_dict(dict):
+    for key in dict:
+        print dict[key].name
+
 def getSession(server, name):
     all_users = server.getUsers()
     for u,d in all_users.items():
-        if d.name == args.object:
+        if d.name == name:
             return d.session
 
+def list_object_names(args):
+    if args.object == 'channels':
+        _print_name_from_dict(server.getChannels())
+    elif args.object == 'users':
+        _print_name_from_dict(server.getUsers())
+    elif args.object == 'bans':
+        _print_name_from_dict(server.getBans())
+    elif args.object == 'registered':
+        _print_name_from_dict(server.getRegisteredUsers(''))
+    elif args.object == 'tree':
+        print server.getTree()
+
+def logdump(args):
+    length = server.getLogLen()
+    print server.getLog(0,length)
+
+def status(args):
+    if server.isRunning():
+        print 'Running. Uptime: %d seconds' %server.getUptime()
+    else:
+        print 'Stopped'
+
+def kick_user(args):
+    sessionid = getSession(server, args.user)
+    server.kickUser(sessionid, args.message)
+
+def send_message(args):
+    sessionid = getSession(server, args.user)
+    server.sendMessage(sessionid, args.message)
 
 props = Ice.createProperties()
 props.setProperty('Ice.Default.EncodingVersion','1.0')
@@ -45,36 +78,31 @@ meta = Murmur.MetaPrx.checkedCast(proxy)
 server = meta.getServer(1)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('command', help='command to perform on murmur server')
-parser.add_argument('object', help='object the command should be performed on',
-        default='None')
-parser.add_argument('remain',nargs='*')
+subparser = parser.add_subparsers()
+#subparser for list functionality
+list_parser = subparser.add_parser('list', help='lists info from the server')
+list_parser.add_argument('object', help='object to list')
+list_parser.set_defaults(func=list_object_names)
+#subparser for dumping logs to the screen
+dump_parser = subparser.add_parser('logdump', help='dump logs to the screen')
+dump_parser.set_defaults(func=logdump)
+#status parser
+status_parser = subparser.add_parser('status', help='get the status of the server')
+status_parser.set_defaults(func=status)
+#kick user parser
+kick_parser = subparser.add_parser('kick', help='kick a user')
+kick_parser.add_argument('user', help='user to kick')
+kick_parser.add_argument('-m','--message',default=' ',
+        help='message to send to the user')
+kick_parser.set_defaults(func=kick_user);
+#send a message
+message_parser = subparser.add_parser('message', help='send a message to a user')
+message_parser.add_argument('user', help='user to send a message to')
+message_parser.add_argument('message',help='body of the messeage')
+message_parser.set_defaults(func=send_message)
+#parse args and call appropriate function
 args = parser.parse_args()
+args.func(args)
 
 
-if args.command == 'list':
-    if args.object == 'channels':
-        print server.getChannels()
-    elif args.object == 'users':
-        print server.getUsers()
-    elif args.object == 'bans':
-        print server.getBans()
-    elif args.object == 'registered':
-        print server.getRegisteredUsers('')
-    elif args.object == 'tree':
-        print server.getTree()
-elif args.command == 'dump':
-    if args.object =='logs':
-        length = server.getLogLen()
-        print server.getLog(0,length)
-elif args.command == 'status':
-    if server.isRunning():
-        print 'Running. Uptime: %d seconds' %server.getUptime()
-    else:
-        print 'Stopped'
-elif args.command == 'kick':
-    sessionid = getSession(server, args.object)
-    server.kickUser(sessionid, 'Test kick message.')
-elif args.command == 'message':
-    sessionid = getSession(server, args.object)
-    server.sendMessage(sessionid, args.remain[0])
+    
