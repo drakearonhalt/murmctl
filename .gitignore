@@ -1,3 +1,8 @@
 *.html
 Murmur/
 *.swp
+/bin
+/include
+/lib
+pyvenv.cfg
+user.py
