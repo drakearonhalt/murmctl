@@ -16,7 +16,8 @@ Requirements:
 * argparse from CentOS repo
 
 Developed on CentOS 6.5
-murmctl may work with other versions but has not been tested.
+
+murmctl may work with other versions and distros but has not been tested.
 
 * * *
 
@@ -30,9 +31,11 @@ Currently supports the following:
 
 * * * 
 Installation
-
+'''
 git clone https://github.com/drakearonhalt/murmctl.git
-cd murmctl
-./murmctl.py -h
 
+cd murmctl
+
+./murmctl.py -h
+'''
 * right now the Murmur.ice file is hardcoded to /opt/murmur this may need to be changed for your installation.
