@@ -31,11 +31,11 @@ Currently supports the following:
 
 * * * 
 Installation
-'''
+```
 git clone https://github.com/drakearonhalt/murmctl.git
 
 cd murmctl
 
 ./murmctl.py -h
-'''
+```
 * right now the Murmur.ice file is hardcoded to /opt/murmur this may need to be changed for your installation.
