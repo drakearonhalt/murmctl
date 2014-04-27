@@ -27,11 +27,17 @@ def _print_name_from_dict(dict):
     for key in dict:
         print dict[key].name
 
-def getSession(server, name):
+def _getSession(server, name):
     all_users = server.getUsers()
     for u,d in all_users.items():
         if d.name == name:
             return d.session
+
+def _get_user_info(server,name):
+    all_users = server.getUsers()
+    for key in all_users:
+        if all_users[key].name == name:
+            return all_users[key]
 
 def list_object_names(args):
     if args.object == 'channels':
@@ -45,9 +51,14 @@ def list_object_names(args):
     elif args.object == 'tree':
         print server.getTree()
 
+
 def logdump(args):
     length = server.getLogLen()
-    print server.getLog(0,length)
+    logs = server.getLog(0,length)
+    #logs have newest entry as first item in the list
+    #we want it to be visible on screen so make it the last entry
+    for log in reversed(logs):
+        print '%s: %s' %(log.timestamp, log.txt)
 
 def status(args):
     if server.isRunning():
@@ -56,12 +67,37 @@ def status(args):
         print 'Stopped'
 
 def kick_user(args):
-    sessionid = getSession(server, args.user)
+    sessionid = _getSession(server, args.user)
     server.kickUser(sessionid, args.message)
 
 def send_message(args):
-    sessionid = getSession(server, args.user)
+    sessionid = _getSession(server, args.user)
     server.sendMessage(sessionid, args.message)
+
+#still broken....
+def register_user(args):
+    print _get_user_info(server, args.user)
+    user_info = Murmur.UserInfo(args.user,1)
+    print user_info
+    server.registerUser(user_info)
+
+def channel_actions(args):
+    if args.action == 'add':
+        if args.parent:
+            channels = server.getChannels()
+            for key in channels:
+                channels[key].name == args.parent
+                args.parent = channels[key].id
+
+        server.addChannel(args.channel_name,args.parent)
+    elif args.action =='remove':
+        channels = server.getChannels()
+        for key in channels:
+            if channels[key].name == args.channel_name:
+                server.removeChannel(channels[key].id)
+
+
+
 
 props = Ice.createProperties()
 props.setProperty('Ice.Default.EncodingVersion','1.0')
@@ -94,13 +130,23 @@ kick_parser = subparser.add_parser('kick', help='kick a user')
 kick_parser.add_argument('user', help='user to kick')
 kick_parser.add_argument('-m','--message',default=' ',
         help='message to send to the user')
-kick_parser.set_defaults(func=kick_user);
+kick_parser.set_defaults(func=kick_user)
 #send a message
 message_parser = subparser.add_parser('message', help='send a message to a user')
 message_parser.add_argument('user', help='user to send a message to')
 message_parser.add_argument('message',help='body of the messeage')
 message_parser.set_defaults(func=send_message)
-#parse args and call appropriate function
+#register a user
+reg_parser = subparser.add_parser('register', help='register a user')
+reg_parser.add_argument('user', help='user to register')
+reg_parser.set_defaults(func=register_user)
+#add channel
+channel_parser = subparser.add_parser('channel', help='add or remove channels')
+channel_parser.add_argument('action', help='add or remove')
+channel_parser.add_argument('channel_name', help='name of new channel')
+channel_parser.add_argument('-p','--parent',default=0,
+        help='parent of channel you are adding')
+channel_parser.set_defaults(func=channel_actions)
 args = parser.parse_args()
 args.func(args)
 
